@@ -1,11 +1,6 @@
 {application, egssapi, [
   {description, "GSSAPI"},
-  {vsn,"@egssapi_VSN@"},
-  {modules, [
-    'SPNEGOASNOneSpec',
-	egssapi,
-	spnego
-  ]},
+  {vsn,"0.2"},
   {applications, [
     kernel,
 	stdlib
