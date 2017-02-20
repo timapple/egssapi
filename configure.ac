@@ -67,9 +67,8 @@ AC_SUBST(EI_LIBS)
 
 AC_CONFIG_FILES([
 		 Makefile
-		 egssapi/Makefile
-		 egssapi/c_src/Makefile
-		 egssapi/src/Makefile
+		 c_src/Makefile
+		 src/Makefile
 		])
 
 AC_OUTPUT

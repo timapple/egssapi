@@ -1,8 +1,8 @@
-SUBDIRS = egssapi
+SUBDIRS = src c_src
 
 EXTRA_DIST = bootstrap
 
-AM_ERL_FLAGS = -pa egssapi/ebin
+AM_ERL_FLAGS = -pa ebin
 
 ACLOCAL_AMFLAGS = -I m4
 
