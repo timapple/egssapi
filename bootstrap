@@ -5,7 +5,7 @@ if ! test -e config; then
 fi
 
 # Clean up previous run
-rm -f aclocal.m4 config/depcomp config/install-sh config/missing configure Makefile.in esasl/Makefile.in esasl/priv/Makefile.in esasl/src/Makefile.in
+rm -f aclocal.m4 config/depcomp config/install-sh config/missing configure Makefile.in egssapi/Makefile.in egssapi/c_src/Makefile.in egssapi/src/Makefile.in
 
 aclocal -I m4
 autoconf
