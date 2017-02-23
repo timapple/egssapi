@@ -3,6 +3,6 @@
   {vsn,"0.2"},
   {applications, [
     kernel,
-	stdlib
+    stdlib
   ]}
 ]}.
