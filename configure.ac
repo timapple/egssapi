@@ -20,7 +20,7 @@
 
 # Needs autoconf 2.59c for erlang support
 AC_PREREQ(2.59c)
-AC_INIT(egssapi, 0.1, [Mikael Magnusson <mikma@users.sourceforge.net>])
+AC_INIT(egssapi, 0.2, [Mikael Magnusson <mikma@users.sourceforge.net>])
 AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_SRCDIR([configure.ac])
 AC_CONFIG_MACRO_DIR([m4])
@@ -67,9 +67,8 @@ AC_SUBST(EI_LIBS)
 
 AC_CONFIG_FILES([
 		 Makefile
-		 egssapi/Makefile
-		 egssapi/c_src/Makefile
-		 egssapi/src/Makefile
+		 c_src/Makefile
+		 src/Makefile
 		])
 
 AC_OUTPUT

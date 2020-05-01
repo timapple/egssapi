@@ -68,23 +68,6 @@
 -define(SERVER, ?MODULE).
 -define(APP, egssapi).
 
-%%-define(ENABLE_DEBUG, yes).
-
--ifdef(ENABLE_DEBUG).
--define(INFO, io:format).
--define(DEBUG, io:format).
-%% -define(WARNING, io:format).
-%% -define(ERROR, io:format).
--else.
--define(INFO, ignore).
--define(DEBUG, ignore).
-%% -define(WARNING, ignore).
-%% -define(ERROR, ignore).
--endif.
-
--define(WARNING, io:format).
--define(ERROR, io:format).
-
 -record(context, {
 	  server_ref,				% pid()|atom()
 	  index=-1				% integer()
@@ -149,8 +132,6 @@ stop(Server_ref) ->
 accept_sec_context(Context, Data) when is_binary(Data) ->
     Idx = lookup_index(Context),
     Result = call_port(Context, {accept_sec_context, {Idx, Data}}),
-%%     io:format("accept_sec_context Result ~p~n", [Result]),
-
     case Result of
 	{ok, {Idx2, User, Ccname, Resp}} ->
 	    {ok, {set_index(Context, Idx2), User, Ccname, Resp}};
@@ -267,7 +248,6 @@ init([KeyTab, Ccname]) ->
 %% Description: Handling call messages
 %%--------------------------------------------------------------------
 handle_call({call, Msg}, From, State) ->
-    %%         io:format("Calling port with ~p~n", [Msg]),
     Port = State#state.port,
     erlang:port_command(Port, term_to_binary(Msg)),
 
@@ -300,7 +280,6 @@ handle_cast(_Msg, State) ->
 handle_info({Port, {data, Data}}, State = #state{port=Port}) ->
     Term = binary_to_term(Data),
     [From | Rest] = State#state.waiting,
-    %% 		io:format("Result ~p~n", [Term]),
     gen_server:reply(From, Term),
     {noreply, State#state{waiting=Rest}};
 
@@ -341,9 +320,7 @@ code_change(_OldVsn, State, _Extra) ->
 
 call_port(Context, Msg) ->
     Server_ref = lookup_server(Context),
-%%     io:format("Call port ~p~n", [Msg]),
-    Result = gen_server:call(Server_ref, {call, Msg}),
-%%     io:format("Result ~p~n", [Result]),
+    Result = gen_server:call(Server_ref, {call, Msg}, 10000),
     Result.
 
 lookup_server(Context) when is_record(Context, context) ->

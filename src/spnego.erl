@@ -38,7 +38,7 @@
 %%%
 
 % Documented in RFC 4178 and RFC 2743 section 3.1
-% asn1ct:compile("SPNEGOASNOne",[ber])
+% asn1ct:compile("SPNEGOASNOneSpec",[ber]).
 -module(spnego).
 
 %% -compile([export_all]).
@@ -119,7 +119,7 @@ accept_sec_context(Context, spnego, _Data, {negTokenInit, {'NegTokenInit', Types
 	    ok
     end,
 
-    {Status, Value} = egssapi:accept_sec_context(Context, list_to_binary(Token)),
+    {Status, Value} = egssapi:accept_sec_context(Context, iolist_to_binary(Token)),
     
     Neg_state =
 	case Status of
@@ -171,7 +171,7 @@ init_sec_context(Context, krb5, {Service, Hostname}, Data, _Token) ->
 init_sec_context(Context, spnego, {Service, Hostname}, _Data, undefined) ->
     init_sec_context_spnego(Context, {Service, Hostname}, <<>>);
 init_sec_context(Context, spnego, {Service, Hostname}, _Data, {negTokenInit, {'NegTokenInit', _Types, _ReqFlags, Token, _ListMIC}}) ->
-    init_sec_context_spnego(Context, {Service, Hostname}, list_to_binary(Token)).
+    init_sec_context_spnego(Context, {Service, Hostname}, iolist_to_binary(Token)).
 
 init_sec_context_spnego(Context, {Service, Hostname}, Token) ->
     ?DEBUG("negTokenInit~n", []),
@@ -214,7 +214,7 @@ decode_spnego(Blob) when is_binary(Blob) ->
 
 encode_spnego(Spnego) when is_tuple(Spnego) ->
     {ok, Spnego_data} = 'SPNEGOASNOneSpec':encode('NegotiationToken', Spnego),
-    encode_gssapi(?OID_SPNEGO, list_to_binary(Spnego_data)).
+    encode_gssapi(?OID_SPNEGO, iolist_to_binary(Spnego_data)).
 
 decode_gssapi(Data) when is_binary(Data) ->
     <<?TAG_APP_SEQ, Rest/binary>> = Data,
@@ -266,12 +266,15 @@ calc_octets(Len, Octets) ->
     
 
 decode_oid(Data) when is_binary(Data) ->
-    {Oid_dec, Blob, _} = ?RT_BER:decode_object_identifier(Data, [], []),
+    %{Oid_dec, Blob, _} = ?RT_BER:decode_object_identifier(Data, [], []),
+    <<6:8/unsigned, OidLen:8/unsigned, OidBin:OidLen/binary, Blob/binary>> = Data,
+    Oid_dec = 'SPNEGOASNOneSpec':'dec_MechType'(OidBin, []),
     {Oid_dec, Blob}.
 
 encode_oid(Oid) when is_tuple(Oid) ->
-    {Oid_list, _} = ?RT_BER:encode_object_identifier(Oid, []),
-    list_to_binary(Oid_list).
+    %{Oid_list, _} = ?RT_BER:encode_object_identifier(Oid, []),
+    {Oid_list, _OidEncLen} = 'SPNEGOASNOneSpec':'enc_MechType'(Oid, [<<6>>]),
+    iolist_to_binary(Oid_list).
 
 
 ignore(_,_) ->
@@ -285,7 +288,7 @@ test() ->
     3 = calc_octets(65536),
     <<0>> = encode_length(<<>>),
     <<5>> = encode_length(<<1,2,3,4,5>>),
-    <<131,1,0,0>> = encode_length(list_to_binary(lists:duplicate(65536, 1))),
+    <<131,1,0,0>> = encode_length(iolist_to_binary(lists:duplicate(65536, 1))),
     Data = <<1,2,3,4>>,
     {?OID_KRB5, Data} = decode_gssapi(encode_gssapi(?OID_KRB5, Data)),
 
