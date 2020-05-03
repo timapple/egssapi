@@ -267,11 +267,15 @@ accept_user(gss_ctx_id_t *ctx,
                                       &delegated_cred_handle);
 
 
-    if ((maj_stat & GSS_S_CONTINUE_NEEDED) || maj_stat != GSS_S_COMPLETE) {
-        fprintf(stderr, "gss_accept_sec_context: %08x %d %d ",
-                maj_stat, maj_stat & GSS_S_CONTINUE_NEEDED, maj_stat != GSS_S_COMPLETE);
+    if (GSS_ERROR(maj_stat) || (GSS_SUPPLEMENTARY_INFO(maj_stat) & ~GSS_S_CONTINUE_NEEDED)) {
+        fprintf(stderr, "gss_accept_sec_context: %08x", maj_stat);
         gss_print_errors(min_stat);
         ret = AUTH_GSS_ERROR;
+        goto out;
+    }
+    
+    if (maj_stat & GSS_S_CONTINUE_NEEDED) {
+        ret = AUTH_GSS_CONTINUE;
         goto out;
     }
 
@@ -296,7 +300,7 @@ accept_user(gss_ctx_id_t *ctx,
     }
     */
 
- out:
+out:
     if (src_name != GSS_C_NO_NAME)
         gss_release_name(&min_stat, &src_name);
 
