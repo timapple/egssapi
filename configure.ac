@@ -20,7 +20,7 @@
 
 # Needs autoconf 2.59c for erlang support
 AC_PREREQ(2.59c)
-AC_INIT(egssapi, 0.2, [Mikael Magnusson <mikma@users.sourceforge.net>])
+AC_INIT(egssapi, 0.3, [Mikael Magnusson <mikma@users.sourceforge.net>, timapple])
 AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_SRCDIR([configure.ac])
 AC_CONFIG_MACRO_DIR([m4])

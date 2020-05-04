@@ -266,9 +266,10 @@ accept_user(gss_ctx_id_t *ctx,
                                       NULL,
                                       &delegated_cred_handle);
 
+    fprintf(stderr, "gss_accept_sec_context return: %X, %X\n", maj_stat, min_stat);
 
     if (GSS_ERROR(maj_stat) || (GSS_SUPPLEMENTARY_INFO(maj_stat) & ~GSS_S_CONTINUE_NEEDED)) {
-        fprintf(stderr, "gss_accept_sec_context: %08x", maj_stat);
+        fprintf(stderr, "gss_accept_sec_context: %08x\n", maj_stat);
         gss_print_errors(min_stat);
         ret = AUTH_GSS_ERROR;
         goto out;
@@ -282,6 +283,7 @@ accept_user(gss_ctx_id_t *ctx,
     if (name) {
         /* Use display name */
         maj_stat = gss_display_name(&min_stat, src_name, name, NULL);
+        fprintf(stderr, "gss_display_name return: %X, %X\n", maj_stat, min_stat);
         if (GSS_ERROR(maj_stat)) {
             ret = AUTH_GSS_ERROR;
             goto out;
@@ -330,6 +332,7 @@ init_user(gss_ctx_id_t *ctx,
                                 GSS_C_NT_HOSTBASED_SERVICE,
                                 &server);
 
+    fprintf(stderr, "gss_import_name return: %X, %X\n", maj_stat, min_stat);
     if (GSS_ERROR(maj_stat))
         gss_err (1, min_stat,
                  "Error importing name `%s@%s':\n", service, hostname);
@@ -348,6 +351,8 @@ init_user(gss_ctx_id_t *ctx,
                              output_token,
                              NULL,
                              NULL);
+
+    fprintf(stderr, "gss_init_sec_context return: %X, %X\n", maj_stat, min_stat);
     if (GSS_ERROR(maj_stat))
         gss_err (1, min_stat, "gss_init_sec_context");
 
@@ -373,6 +378,9 @@ gss_print_errors (int min_stat)
                                   GSS_C_NO_OID,
                                   &msg_ctx,
                                   &status_string);
+
+	fprintf(stderr, "gss_display_status return: %X, %X\n", ret, new_stat);
+
         fprintf (stderr, "%s\n", (char *)status_string.value);
         gss_release_buffer (&new_stat, &status_string);
     } while (!GSS_ERROR(ret) && msg_ctx != 0);
@@ -400,7 +408,7 @@ gss_err(int exitval, int status, const char *fmt, ...)
 void test(int argc, char *argv[])
 {
     const char *hostname;
-    const char *service = "HTTP";
+    const char *service = "xmpp";
     gss_buffer_desc input_token = GSS_C_EMPTY_BUFFER;
     gss_buffer_desc output_token = GSS_C_EMPTY_BUFFER;
     gss_buffer_desc name = GSS_C_EMPTY_BUFFER;
@@ -413,8 +421,12 @@ void test(int argc, char *argv[])
 
     hostname = argv[1];
 
-    init_user(&ctx_init, service, hostname, NULL, &output_token);
-    if (accept_user(&ctx, &output_token, &input_token, &name, &ccname) == OK) {
+    int r1 = init_user(&ctx_init, service, hostname, NULL, &output_token);
+    fprintf(stderr, "init_user return: %X\n", r1);
+    if (r1 != OK) return;
+    int r2 = accept_user(&ctx, &output_token, &input_token, &name, &ccname);
+    fprintf(stderr, "accept_user return: %X\n", r2);
+    if (r2 == OK) {
         fprintf(stderr, "User authenticated\r\n");
     }
 }

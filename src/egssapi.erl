@@ -60,7 +60,8 @@
 
 % Internal exports
 -export([call_port/2,
-	 test/0]).
+	 test/0,
+	 gethostname/0]).
 
 -include_lib("kernel/include/inet.hrl").
 
@@ -340,10 +341,10 @@ set_index(Server_ref, Idx) when is_atom(Server_ref); is_pid(Server_ref) ->
 
 test() ->
     io:format("~p: test 1~n", [?MODULE]),
-    {ok, Server}=start_link("http.keytab"),
+    {ok, Server} = start_link(),
 
     io:format("~p: test 2~n", [?MODULE]),
-    {ok, {Ctx, Data}}=init_sec_context(Server, "HTTP", gethostname(),<<>>),
+    {ok, {Ctx, Data}} = init_sec_context(Server, "xmpp", gethostname(),<<>>),
 
     io:format("~p: test 4~n", [?MODULE]),
     {ok, {Ctx2, User, _Ccname, _Out}} = accept_sec_context(Server, Data),
@@ -378,7 +379,7 @@ test() ->
 
     stop(Server),
 
-    {ok, Server2}=start_link({local, gssapi_test}, "http.keytab"),
+    {ok, Server2} = start_link({local, gssapi_test}, ""),
     stop(Server2),
 
     ok.
