@@ -15,3 +15,7 @@ SPNEGOASNOneSpec.hrl
 *.beam
 *.o
 rebar.lock
+.rebar
+ebin
+priv
+c_src/c_src
