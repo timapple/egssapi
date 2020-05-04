@@ -14,8 +14,9 @@ SPNEGOASNOneSpec.hrl
 *.app
 *.beam
 *.o
+*.d
 rebar.lock
 .rebar
 ebin
 priv
-c_src/c_src
+compile_commands.json

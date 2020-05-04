@@ -68,7 +68,6 @@ AC_SUBST(EI_LIBS)
 AC_CONFIG_FILES([
 		 Makefile
 		 c_src/Makefile
-		 src/Makefile
 		])
 
 AC_OUTPUT
