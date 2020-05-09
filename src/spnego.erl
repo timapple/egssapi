@@ -5,7 +5,7 @@
 %%%
 %%% Created :  3 May 2007 by Mikael Magnusson <mikael@skinner.hem.za.org>
 %%%-------------------------------------------------------------------
-%%%
+%%%               2020 timapple
 %%% Copyright (c) 2007 Mikael Magnusson
 %%% All rights reserved. 
 %%%
@@ -45,8 +45,8 @@
 
 %% API
 -export([accept_sec_context/2,
-	 init_sec_context/4,
-	 delete_sec_context/1]).
+        init_sec_context/4,
+        delete_sec_context/1]).
 
 %% Internal exports
 -export([test/0]).
@@ -60,6 +60,7 @@
 -define(OID_SPNEGO, {1,3,6,1,5,5,2}).
 %% -define(OID_MS_KRB5, {1,2,840,48018,1,2,2}).
 %% -define(OID_NTLM_SSP, {1,3,6,1,4,1,311,2,2,10}).
+%% -define(OID_SPNEGOEX, {1,3,6,1,4,1,311,2,2,30}).
 
 -define('RT_BER',asn1rt_ber_bin).
 
@@ -109,38 +110,27 @@ accept_sec_context(Context, spnego, _Data, {negTokenInit, {'NegTokenInit', Types
     ?DEBUG("negTokenInit~n", []),
 
     case lists:member(?OID_KRB5, Types) of
-	false ->
-	    Spnego1 = {negTokenResp, {'NegTokenResp', reject, ?OID_KRB5, [], asn1_NOVALUE}},
-	    %% TODO use Resp1
-	    _Resp1 = encode_spnego(Spnego1),
-%% 	    {Status, {User, Ccname, Resp1}},
-	    throw({error, unsupported_mech});
-	true ->
-	    ok
+        false ->
+%%            Spnego1 = {negTokenResp, {'NegTokenResp', reject, ?OID_KRB5, [], asn1_NOVALUE}},
+%%            _Resp1 = encode_spnego(Spnego1),
+%%            {Status, {User, Ccname, Resp1}},
+            throw({error, unsupported_mech});
+        true ->
+            ok
     end,
 
-    {Status, Value} = egssapi:accept_sec_context(Context, iolist_to_binary(Token)),
-    
-    Neg_state =
-	case Status of
-	    ok ->
-		'accept-completed';
-	    needsmore ->
-		'accept-incomplete';
-	    error ->
-		'reject'
-	end,
-
-    {Context2, User, Ccname, Resp} =
-	case Status of
-	    error ->
-		{undefined, undefined, undefined, asn1_NOVALUE};
-	    _ ->
-		Value
-	end,
-
-    Spnego = {negTokenResp, {'NegTokenResp', Neg_state, ?OID_KRB5, Resp, asn1_NOVALUE}},
-    {Status, {Context2, User, Ccname, encode_spnego(Spnego)}}.
+    case egssapi:accept_sec_context(Context, iolist_to_binary(Token)) of
+        {ok, {Context2, User, Ccname, Resp}} ->
+            Spnego = {negTokenResp, {'NegTokenResp', 'accept-completed', ?OID_KRB5, Resp, asn1_NOVALUE}},
+            {ok, {Context2, User, Ccname, encode_spnego(Spnego)}};
+        {needsmore, {Context2, Resp}} ->
+            Spnego = {negTokenResp, {'NegTokenResp', 'accept-incomplete', ?OID_KRB5, Resp, asn1_NOVALUE}},
+            {needsmore, {Context2, encode_spnego(Spnego)}};
+        {error, Error} ->
+%%            Spnego = {negTokenResp, {'NegTokenResp', 'reject', ?OID_KRB5, Resp, asn1_NOVALUE}},
+%%            {error, Error, encode_spnego(Spnego)}
+            {error, Error}
+    end.
 
 %%--------------------------------------------------------------------
 %% Function: init_sec_context(Server_ref|Context, Mech, Service, Hostname) |
