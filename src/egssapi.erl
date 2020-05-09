@@ -41,27 +41,26 @@
 -behaviour(gen_server).
 
 %% API
--export([
-	 start_link/0,
-	 start_link/1,
-	 start_link/2,
-	 start_link/3,
-	 stop/1,
-	 accept_sec_context/2,
-	 init_sec_context/4,
-	 wrap/3,
-	 unwrap/2,
-	 delete_sec_context/1
-	]).
+-export([start_link/0,
+        start_link/1,
+        start_link/2,
+        start_link/3,
+        stop/1,
+        accept_sec_context/2,
+        init_sec_context/4,
+        wrap/3,
+        unwrap/2,
+        delete_sec_context/1
+    ]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
-	 terminate/2, code_change/3]).
+        terminate/2, code_change/3]).
 
 % Internal exports
 -export([call_port/2,
-	 test/0,
-	 gethostname/0]).
+        test/0,
+        gethostname/0]).
 
 -include_lib("kernel/include/inet.hrl").
 
@@ -70,14 +69,14 @@
 -define(APP, egssapi).
 
 -record(context, {
-	  server_ref,				% pid()|atom()
-	  index=-1				% integer()
-	  }).
+        server_ref,				% pid()|atom()
+        index = -1				% integer()
+    }).
 
 -record(state, {
-	  port,
-	  waiting = []
-	 }).
+        port,
+        waiting = []
+    }).
 
 %%====================================================================
 %% API
@@ -97,8 +96,7 @@ start_link() ->
 start_link(KeyTab) ->
     start_link(KeyTab, "").
 
-start_link(KeyTab, Ccname) when is_list(KeyTab),
-				is_list(Ccname) ->
+start_link(KeyTab, Ccname) when is_list(KeyTab), is_list(Ccname) ->
     gen_server:start_link(?MODULE, [KeyTab, Ccname], []);
 start_link(Server_name, KeyTab) ->
     start_link(Server_name, KeyTab, "").
@@ -134,12 +132,12 @@ accept_sec_context(Context, Data) when is_binary(Data) ->
     Idx = lookup_index(Context),
     Result = call_port(Context, {accept_sec_context, {Idx, Data}}),
     case Result of
-	{ok, {Idx2, User, Ccname, Resp}} ->
-	    {ok, {set_index(Context, Idx2), User, Ccname, Resp}};
-	{needsmore, {Idx2, Resp}} ->
-	    {needsmore, {set_index(Context, Idx2), Resp}};
-	{error, Reason} ->
-	    {error, Reason}
+        {ok, {Idx2, User, Ccname, Resp}} ->
+            {ok, {set_index(Context, Idx2), User, Ccname, Resp}};
+        {needsmore, {Idx2, Resp}} ->
+            {needsmore, {set_index(Context, Idx2), Resp}};
+        {error, Reason} ->
+            {error, Reason}
     end.
 
 %%--------------------------------------------------------------------
@@ -157,14 +155,14 @@ accept_sec_context(Context, Data) when is_binary(Data) ->
 %%           Error = number(), GSSAPI error code
 %%--------------------------------------------------------------------
 init_sec_context(Context, Service, Hostname, Data) when is_list(Service),
-							is_list(Hostname),
-							is_binary(Data) ->
+                                                        is_list(Hostname),
+                                                        is_binary(Data) ->
     Idx = lookup_index(Context),
     case call_port(Context, {init_sec_context, {Idx, Service, Hostname, Data}}) of
-	{Status, {Idx2, Resp}} ->
-	    {Status, {set_index(Context, Idx2), Resp}};
-	{error, Reason} ->
-	    {error, Reason}
+        {Status, {Idx2, Resp}} ->
+            {Status, {set_index(Context, Idx2), Resp}};
+        {error, Reason} ->
+            {error, Reason}
     end.
 
 %%--------------------------------------------------------------------
@@ -179,7 +177,7 @@ init_sec_context(Context, Service, Hostname, Data) when is_list(Service),
 %%           Error = number(), GSSAPI error code
 %%--------------------------------------------------------------------
 wrap(Context, Conf_req_flag, Input) when is_atom(Conf_req_flag),
-					 is_binary(Input) ->
+                                         is_binary(Input) ->
     Idx = lookup_index(Context),
     call_port(Context, {wrap, {Idx, Conf_req_flag, Input}}).
 
@@ -224,17 +222,17 @@ init([KeyTab, Ccname]) ->
     ExtPrg = filename:join(code:priv_dir(?APP), ?GSSAPI_DRV),
     process_flag(trap_exit, true),
     KeyTabEnv =
-	if KeyTab =/= [] ->
-		[{"KRB5_KTNAME", KeyTab}];
-	   true ->
-		[]
-	end,
+    if KeyTab =/= [] ->
+        [{"KRB5_KTNAME", KeyTab}];
+    true ->
+        []
+    end,
     Ccname_env =
-	if Ccname =/= [] ->
-		[{"KRB5CCNAME", Ccname}];
-	   true ->
-		[]
-	end,
+    if Ccname =/= [] ->
+        [{"KRB5CCNAME", Ccname}];
+    true ->
+        []
+    end,
     Env = {env, KeyTabEnv ++ Ccname_env},
     Port = open_port({spawn, ExtPrg}, [{packet, 2}, binary, exit_status, Env]),
     {ok, #state{port=Port}}.
@@ -387,8 +385,8 @@ test() ->
 gethostname() ->
     {ok, Name} = inet:gethostname(),
     case inet:gethostbyname(Name) of
-	{ok, Hostent} when is_record(Hostent, hostent) ->
-	    Hostent#hostent.h_name;
-	_ ->
-	    Name
+        {ok, Hostent} when is_record(Hostent, hostent) ->
+            Hostent#hostent.h_name;
+        _ ->
+            Name
     end.
